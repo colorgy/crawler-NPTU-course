@@ -1,6 +1,5 @@
 source 'https://rubygems.org'
 
-gem 'selenium-webdriver'
-gem 'capybara'
 gem 'nokogiri'
 gem 'pry'
+gem 'crawler_rocks'
