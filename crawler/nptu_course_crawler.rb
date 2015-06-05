@@ -1,5 +1,6 @@
 require 'crawler_rocks'
 require 'pry'
+require 'iconv'
 
 class NptuCourseCrawler
   include CrawlerRocks::DSL
@@ -19,6 +20,7 @@ class NptuCourseCrawler
 
   def courses
     @courses = []
+    ic = Iconv.new("utf-8//translit//IGNORE","big5")
 
     visit @search_url
     deps = @doc.css('select[name="dept"] option:not(:first-child)').map{|opt| opt.text.strip}
@@ -40,9 +42,10 @@ class NptuCourseCrawler
           sect: sect,
           grade: grade
         }
-        doc = Nokogiri::HTML(r.force_encoding(r.encoding))
+        doc = Nokogiri::HTML(ic.iconv(r))
         parse(doc, dep, sect, grade)
       rescue RestClient::RequestTimeout => e
+        puts "error"
         next
       end
     end; end; end;
@@ -80,7 +83,7 @@ class NptuCourseCrawler
         name: datas[1] && datas[1].text,
         url: datas[1] && datas[1].css('a') && datas[1].css('a')[0] && datas[1].css('a')[0][:href],
         domain: datas[2] && datas[2].text.strip,
-        required: required_raw && required_raw[1..-1].strip,
+        required: required_raw && required_raw[1..-1].strip.include?('必'),
         credits: datas[4] && datas[4].text.to_i,
         lecturer: datas[9] && datas[9].text.strip,
         day_1: course_days[0],
